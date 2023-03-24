@@ -55,6 +55,9 @@ jobs:
           name: python-app
           path: .
 
+      - name: Building web app
+        uses: azure/appservice-build@v2
+        
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
