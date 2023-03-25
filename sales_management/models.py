@@ -20,7 +20,7 @@ class Emoney(models.Model):
         db_table = 'e_money'
 
 
-class EMType(models.Model):
+class EMoneyType(models.Model):
     # ID:Long(4) False
     id = models.BigAutoField(primary_key=True)
     # 取引先:Text(255) False
@@ -293,14 +293,14 @@ class SalesDetails(models.Model):
         db_table = 'sales_details'
 
 
-class Saller(models.Model):
+class Seller(models.Model):
     # ID:Long(4) False
     id = models.BigAutoField(primary_key=True)
-    # SallerName:Text(255) False
-    saller_name = models.CharField(max_length=255, null=True)
+    # SellerName:Text(255) False
+    seller_name = models.CharField(max_length=255, null=True)
 
     class Meta:
-        db_table = 'saller'
+        db_table = 'seller'
 
 
 class SalonItems(models.Model):
@@ -329,7 +329,7 @@ class SalonItems(models.Model):
         db_table = 'salon_items'
 
 
-Emoney.type_id = models.ForeignKey(EMType, on_delete=models.SET_NULL, null=True)
+Emoney.type_id = models.ForeignKey(EMoneyType, on_delete=models.SET_NULL, null=True)
 Emoney.sales_id = models.ForeignKey(Sales, on_delete=models.SET_NULL, null=True)
 
 Hp.sales_id = models.ForeignKey(Sales, on_delete=models.SET_NULL, null=True)
@@ -341,5 +341,5 @@ SalesDetails.sale_id = models.ForeignKey(Sales, on_delete=models.SET_NULL, null=
 SalesDetails.payment_id = models.ForeignKey(Sales, on_delete=models.SET_NULL, null=True, related_name='sales_details_payment')
 SalesDetails.item_id = models.ForeignKey(SalonItems, on_delete=models.SET_NULL, null=True)
 
-RetailItems.seller = models.ForeignKey(Saller, on_delete=models.SET_NULL, null=True)
+RetailItems.seller = models.ForeignKey(Seller, on_delete=models.SET_NULL, null=True)
 
