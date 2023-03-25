@@ -6,15 +6,15 @@ class EMoneySerializer(serializers.ModelSerializer):
         model = Emoney
         fields = ('id', 'type_id', 'sales_id', 'usage_date', 'customer_name', 'amount', 'cashier')
 
-class EMTypeSerializer(serializers.ModelSerializer):
+class EmoneyTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmoneyType
-        fields = ('id', 'trading_partner', 'product', 'type_name')
+        fields = ('id', 'partner', 'item', 'type_name')
 
 class FreeeDealsSerializer(serializers.ModelSerializer):
     class Meta:
         model = FreeeDeals
-        fields = ('type', 'no', 'headline', 'date', 'voucher_number', 'debit_account', 'debit_sub_account', 'debit_partner', 'debit_department', 'debit_product', 'debit_memo_tag', 'debit_tax_category', 'debit_amount', 'debit_tax_amount', 'credit_account', 'credit_sub_account', 'credit_partner', 'credit_department', 'credit_product', 'credit_memo_tag', 'credit_tax_category', 'credit_amount', 'credit_tax_amount', 'summary')
+        fields = ('type', 'number', 'title', 'date', 'slip_number', 'debit_account', 'debit_sub_account', 'debit_partner', 'debit_department', 'debit_item', 'debit_memo_tag', 'debit_tax_category', 'debit_amount', 'debit_tax_amount', 'credit_account', 'credit_sub_account', 'credit_partner', 'credit_department', 'credit_item', 'credit_memo_tag', 'credit_tax_category', 'credit_amount', 'credit_tax_amount', 'summary')
 
 class HPSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,7 +24,7 @@ class HPSerializer(serializers.ModelSerializer):
 class OMRONSerializer(serializers.ModelSerializer):
     class Meta:
         model = Omron
-        fields = ('id', 'handling_date', 'credit_company_code', 'credit_company_name', 'payment_type', 'payment_name', 'installments_gift_value', 'gift_ticket_quantity', 'voucher_number', 'sales_amount', 'deposit_due_date_1', 'deposit_due_date_2')
+        fields = ('id', 'handling_date', 'credit_company_code', 'credit_company_name', 'payment_category', 'payment_name', 'installment_count_gift_value', 'gift_ticket_quantity', 'slip_number', 'sales_amount', 'scheduled_payment_date1', 'scheduled_payment_date2')
 
 class PaymentsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,12 +34,12 @@ class PaymentsSerializer(serializers.ModelSerializer):
 class RetailItemsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RetailItems
-        fields = ('id', 'category', 'no', 'display_name', 'norm_name', 'price', 'cost', 'vat_type', 'vat_rate', 'product_type', 'supplier_name', 'seller', 'active', 'registration_date', 'update_date')
+        fields = ('id', 'category', 'number', 'display_name', 'norm_name', 'price', 'cost', 'vat_type', 'vat_rate', 'product_category', 'supplier_name', 'seller', 'active', 'registration_date', 'update_date')
 
 class SalesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sales
-        fields = ('id', 'sales_id', 'customer', 'sales_date', 'from_time', 'to_time', 'gross_salon_sales', 'gross_retail_sales', 'total_gross_sales', 'total_salon_discount', 'retail_discount', 'service_net_sales', 'retail_net_sales', 'total_net_sales', 'cash', 'card', 'card_type', 'em', 'prepaid', 'credit', 'tax', 'comment')
+        fields = ('id', 'sales_id', 'customer', 'from_time', 'to_time', 'gross_salon_sales', 'gross_retail_sales', 'total_gross_sales', 'total_salon_discount', 'retail_discount', 'service_net_sales', 'retail_net_sales', 'total_net_sales', 'cash', 'card', 'card_type', 'em', 'prepaid', 'credit', 'tax', 'comment')
 
 class SalesDetailsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -54,4 +54,4 @@ class SellerSerializer(serializers.ModelSerializer):
 class SalonItemsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalonItems
-        fields = ('id', 'category', 'no', 'display_name', 'norm_name', 'price', 'tax_type', 'active', 'registration_date', 'update_date')
+        fields = ('id', 'category', 'number', 'display_name', 'norm_name', 'price', 'tax_category', 'active', 'registration_date', 'update_date')

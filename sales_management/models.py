@@ -12,7 +12,7 @@ class Emoney(models.Model):
     # 顧客名:Text(255) False
     customer_name = models.CharField(max_length=255, null=True)
     # 利用金額:Currency(8) False
-    usage_amount = models.DecimalField(max_digits=19, decimal_places=2, null=True)
+    amount = models.DecimalField(max_digits=19, decimal_places=2, null=True)
     # レジ担当:Text(255) False
     cashier = models.CharField(max_length=255, null=True)
 
@@ -20,7 +20,7 @@ class Emoney(models.Model):
         db_table = 'e_money'
 
 
-class EMoneyType(models.Model):
+class EmoneyType(models.Model):
     # ID:Long(4) False
     id = models.BigAutoField(primary_key=True)
     # 取引先:Text(255) False
@@ -40,7 +40,7 @@ class FreeeDeals(models.Model):
     # No:Long(4) False
     number = models.BigIntegerField(null=True)
     # 表題行:Text(255) False
-    title_row = models.CharField(max_length=255, null=True)
+    title = models.CharField(max_length=255, null=True)
     # 日付:Date/Time(8) False
     date = models.DateTimeField(null=True)
     # 伝票番号:Integer(2) False
@@ -122,7 +122,7 @@ class Omron(models.Model):
     # 分割回数／ギフト券額面:Integer(2) False
     installment_count_gift_value = models.IntegerField(null=True)
     # ギフト券枚数:Integer(2) False
-    gift_count = models.IntegerField(null=True)
+    gift_ticket_quantity = models.IntegerField(null=True)
     # 伝票番号:Text(255) False
     slip_number = models.CharField(max_length=255, null=True)
     # 売上金額:Currency(8) False
@@ -215,12 +215,10 @@ class Sales(models.Model):
     sales_id = models.CharField(max_length=255, null=True)
     # Customer:Text(255) False
     customer = models.CharField(max_length=255, null=True)
-    # SalesDate:Date/Time(8) False
-    sales_date = models.DateTimeField(null=True)
     # From:Date/Time(8) False
-    from_date = models.DateTimeField(null=True)
+    from_time = models.DateTimeField(null=True)
     # To:Date/Time(8) False
-    to_date = models.DateTimeField(null=True)
+    to_time = models.DateTimeField(null=True)
     # GrossSalonSales:Currency(8) False
     gross_salon_sales = models.DecimalField(max_digits=19, decimal_places=2, null=True)
     # GrossRetailSales:Currency(8) False
@@ -329,7 +327,7 @@ class SalonItems(models.Model):
         db_table = 'salon_items'
 
 
-Emoney.type_id = models.ForeignKey(EMoneyType, on_delete=models.SET_NULL, null=True)
+Emoney.type_id = models.ForeignKey(EmoneyType, on_delete=models.SET_NULL, null=True)
 Emoney.sales_id = models.ForeignKey(Sales, on_delete=models.SET_NULL, null=True)
 
 Hp.sales_id = models.ForeignKey(Sales, on_delete=models.SET_NULL, null=True)

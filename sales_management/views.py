@@ -1,14 +1,14 @@
 from rest_framework import generics
 from .models import Emoney, EmoneyType, FreeeDeals, Hp, Omron, Payments, RetailItems, Sales, SalesDetails, Seller, SalonItems
-from .serializers import EMoneySerializer, EMTypeSerializer, FreeeDealsSerializer, HPSerializer, OMRONSerializer, PaymentsSerializer, RetailItemsSerializer, SalesSerializer, SalesDetailsSerializer, SellerSerializer, SalonItemsSerializer
+from .serializers import EMoneySerializer, EmoneyTypeSerializer, FreeeDealsSerializer, HPSerializer, OMRONSerializer, PaymentsSerializer, RetailItemsSerializer, SalesSerializer, SalesDetailsSerializer, SellerSerializer, SalonItemsSerializer
 
 class EMoneyListCreateView(generics.ListCreateAPIView):
     queryset = Emoney.objects.all()
     serializer_class = EMoneySerializer
 
-class EMTypeListCreateView(generics.ListCreateAPIView):
+class EmoneyTypeListCreateView(generics.ListCreateAPIView):
     queryset = EmoneyType.objects.all()
-    serializer_class = EMTypeSerializer
+    serializer_class = EmoneyTypeSerializer
 
 class FreeeDealsListCreateView(generics.ListCreateAPIView):
     queryset = FreeeDeals.objects.all()

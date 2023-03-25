@@ -5,3 +5,5 @@ pyyaml
 requests
 django-cors-headers
 pytest-django
+uritemplate
+coreapi
