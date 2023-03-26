@@ -7,3 +7,4 @@ django-cors-headers
 pytest-django
 uritemplate
 coreapi
+pytz
