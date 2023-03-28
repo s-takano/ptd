@@ -24,7 +24,7 @@ class DataImporter():
             try:
                 with open(data_file_path, encoding="UTF-8") as f:
                     content = f.read()
-                    content = content.replace('\\', '\\\\')
+                    content = self.preprocess(content)
                     data[target_name] = json.loads(content)
             except FileNotFoundError as file_not_found_error:
                 logger.error(file_not_found_error)
@@ -34,6 +34,17 @@ class DataImporter():
                 raise Exception(f"json decode error:{json_error}")
 
         self.import_data(data)
+
+    def preprocess(self, content):
+        """
+        Preprocess the content of the JSON file.
+        
+        :param content: The content of the JSON file.
+        :return: The preprocessed content.
+        """
+        # escape backslash
+        content = content.replace('\\', '\\\\')
+        return content
 
     def import_data(self, data):
         """
