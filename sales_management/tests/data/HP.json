@@ -1,0 +1,23 @@
+[
+    {
+        "ID": "1",
+        "SalesId": "15204",
+        "SalesDate": "2022/07/04",
+        "NetSales": "9800",
+        "Points": "100"
+    },
+    {
+        "ID": "2",
+        "SalesId": "15212",
+        "SalesDate": "2022/07/01",
+        "NetSales": "13200",
+        "Points": "140"
+    },
+    {
+        "ID": "3",
+        "SalesId": "",
+        "SalesDate": "2022/09/02",
+        "NetSales": "40260",
+        "Points": "366"
+    }
+]

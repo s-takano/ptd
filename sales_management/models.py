@@ -153,9 +153,6 @@ class RetailItems(models.Model):
     product_category = models.CharField(max_length=255, null=True)
     # 仕入先名:Text(255) False
     supplier_name = models.CharField(max_length=255, null=True)
-    # Seller:Long(4
-    # Seller:Long(4) False
-    seller = models.BigIntegerField(null=True)
     # Active:Boolean(1) False
     active = models.BooleanField(null=True)
     # RegistrationDate:Date/Time(8) False
@@ -252,14 +249,14 @@ class SalesDetails(models.Model):
     field2 = models.CharField(max_length=255, null=True)
 
     sale = models.ForeignKey(
-        Sales, on_delete=models.SET_NULL, null=True, related_name='sales_details_sale')
+        Sales, on_delete=models.SET_NULL, null=True, related_name='details')
     payment = models.ForeignKey(
-        Sales, on_delete=models.SET_NULL, null=True, related_name='sales_details_payment')
+        Sales, on_delete=models.SET_NULL, null=True, related_name='payment_details')
 
-    salon_item = models.OneToOneField(
-        SalonItems, on_delete=models.SET_NULL, null=True, related_name='salon_item')
-    retail_item = models.OneToOneField(
-        RetailItems, on_delete=models.SET_NULL, null=True, related_name='retail_item')
+    salon_item = models.ForeignKey(
+        SalonItems, on_delete=models.SET_NULL, null=True, related_name='salon_details')
+    retail_item = models.ForeignKey(
+        RetailItems, on_delete=models.SET_NULL, null=True, related_name='salon_details')
 
     class Meta:
         db_table = 'sales_details'
@@ -275,7 +272,7 @@ class Hp(models.Model):
     # Points:Currency(8) False
     points = models.DecimalField(max_digits=19, decimal_places=2, null=True)
 
-    sale = models.OneToOneField(
+    sale = models.ForeignKey(
         Sales, on_delete=models.SET_NULL, null=True, related_name='hp')
 
     class Meta:
@@ -308,8 +305,8 @@ class Emoney(models.Model):
     # レジ担当:Text(255) False
     cashier = models.CharField(max_length=255, null=True)
 
-    type = models.OneToOneField(
-        EmoneyType, on_delete=models.SET_NULL, null=True, related_name='emoney_type')
+    type = models.ForeignKey(
+        EmoneyType, on_delete=models.SET_NULL, null=True, related_name='emoney')
     sale = models.ForeignKey(
         Sales, on_delete=models.SET_NULL, null=True, related_name='emoney')
 
@@ -322,8 +319,6 @@ class Payments(models.Model):
     # Payment ID:Text(255) True
     payment_id = models.CharField(max_length=255)
     # Date:Date/Time(8) False
-    date = models.DateTimeField(null=True)
-    # Time:Date/Time(8) False
     time = models.DateTimeField(null=True)
     # Total Collected:Currency(8) False
     total_collected = models.DecimalField(
@@ -339,7 +334,7 @@ class Payments(models.Model):
     # PAN Suffix:Text(255) False
     pan_suffix = models.CharField(max_length=255, null=True)
     # Deposit Date:Text(255) False
-    deposit_date = models.CharField(max_length=255, null=True)
+    deposit_date = models.DateTimeField(null=True)
     # Fee Percentage Rate:Currency(8) False
     fee_percentage_rate = models.DecimalField(
         max_digits=19, decimal_places=2, null=True)
@@ -347,7 +342,7 @@ class Payments(models.Model):
     field1 = models.CharField(max_length=255, null=True)
 
     sale = models.ForeignKey(
-        Sales, on_delete=models.SET_NULL, null=True, related_name='sales_related')
+        Sales, on_delete=models.SET_NULL, null=True, related_name='payments')
 
     class Meta:
         db_table = 'payments'
