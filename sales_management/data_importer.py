@@ -16,35 +16,14 @@ class DataImporter():
     A class to import data from JSON files into the sales management system.
     """
 
-    def import_data_file(self, path):
-        data_files = self._search_data_files(path)
+    def import_data_files(self, directory_path):
+        """
+        Import data from JSON files into the sales management system.
 
-        data = {}
-        for target_name, data_file_path in data_files:
-            try:
-                with open(data_file_path, encoding="UTF-8") as f:
-                    content = f.read()
-                    content = self.preprocess(content)
-                    data[target_name] = json.loads(content)
-            except FileNotFoundError as file_not_found_error:
-                logger.error(file_not_found_error)
-                raise Exception(f"file not found:{data_file_path}")
-            except json.JSONDecodeError as json_error:
-                logger.error(json_error)
-                raise Exception(f"json decode error:{json_error}")
-
+        :param directory_path: The directory path to search for JSON files.
+        """
+        data = self._read_files(directory_path)
         self.import_data(data)
-
-    def preprocess(self, content):
-        """
-        Preprocess the content of the JSON file.
-        
-        :param content: The content of the JSON file.
-        :return: The preprocessed content.
-        """
-        # escape backslash
-        content = content.replace('\\', '\\\\')
-        return content
 
     def import_data(self, data):
         """
@@ -69,6 +48,48 @@ class DataImporter():
         except Exception as e:
             logger.error(e)
             raise Exception(f"import error:{e}")
+
+    def _read_files(self, directory_path):
+        """
+        Read the content of the JSON files in the specified directory.
+
+        :param directory_path: The directory path to search for JSON files.
+        :return: A dictionary containing the content of the JSON files.
+        """
+        data = {}
+        for target_name, data_file_path in self._search_data_files(directory_path):
+            data[target_name] = self._read_file(data_file_path)
+        return data
+
+    def _read_file(self, file_path):
+        """
+        Read the content of the specified JSON file.
+
+        :param file_path: The path of the JSON file to read.
+        :return: The content of the JSON file.
+        """
+        try:
+            with open(file_path, encoding="UTF-8") as f:
+                content = f.read()
+                content = self.preprocess(content)
+                return json.loads(content)
+        except FileNotFoundError as file_not_found_error:
+            logger.error(file_not_found_error)
+            raise Exception(f"file not found:{file_path}")
+        except json.JSONDecodeError as json_error:
+            logger.error(json_error)
+            raise Exception(f"json decode error:{json_error}")
+
+    def preprocess(self, content):
+        """
+        Preprocess the content of the JSON file.
+
+        :param content: The content of the JSON file.
+        :return: The preprocessed content.
+        """
+        # escape backslash
+        content = content.replace('\\', '\\\\')
+        return content
 
     def _search_data_files(self, path):
         """

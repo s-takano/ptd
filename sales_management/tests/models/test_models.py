@@ -20,7 +20,7 @@ class TestModels(TestCase):
     def load_test_data(self):
         current_path = os.path.dirname(os.path.abspath(__file__))
         path = os.path.join(current_path, f"..\\data")
-        DataImporter().import_data_file(path=path)
+        DataImporter().import_data_files(directory_path=path)
 
     def setUp(self):
         self.load_test_data()
