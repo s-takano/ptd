@@ -61,7 +61,7 @@ class FreeeDeals(models.Model):
         db_table = 'freee_deals'
 
 
-class Omron(models.Model):
+class OmronTransactions(models.Model):
     # ID:Long(4) False
     id = models.BigAutoField(primary_key=True)
     # お取扱日:Date/Time(8) False
@@ -91,7 +91,7 @@ class Omron(models.Model):
     scheduled_payment_date2 = models.DateTimeField(null=True)
 
     class Meta:
-        db_table = 'omron'
+        db_table = 'omron_transactions'
 
 
 class SalonItems(models.Model):
@@ -120,14 +120,14 @@ class SalonItems(models.Model):
         db_table = 'salon_items'
 
 
-class Seller(models.Model):
+class Sellers(models.Model):
     # ID:Long(4) False
     id = models.BigAutoField(primary_key=True)
     # SellerName:Text(255) False
     seller_name = models.CharField(max_length=255, null=True)
 
     class Meta:
-        db_table = 'seller'
+        db_table = 'sellers'
 
 
 class RetailItems(models.Model):
@@ -161,7 +161,7 @@ class RetailItems(models.Model):
     update_date = models.DateTimeField(null=True)
 
     seller = models.ForeignKey(
-        Seller, on_delete=models.SET_NULL, null=True)
+        Sellers, on_delete=models.SET_NULL, null=True)
 
     class Meta:
         db_table = 'retail_items'
@@ -262,7 +262,7 @@ class SalesDetails(models.Model):
         db_table = 'sales_details'
 
 
-class Hp(models.Model):
+class HPs(models.Model):
     # ID:Long(4) False
     id = models.BigAutoField(primary_key=True)
     # SalesDate:Date/Time(8) False
@@ -276,10 +276,10 @@ class Hp(models.Model):
         Sales, on_delete=models.SET_NULL, null=True, related_name='hp')
 
     class Meta:
-        db_table = 'hp'
+        db_table = 'hps'
 
 
-class EmoneyType(models.Model):
+class EmoneyTypes(models.Model):
     # ID:Long(4) False
     id = models.BigAutoField(primary_key=True)
     # 取引先:Text(255) False
@@ -306,7 +306,7 @@ class Emoney(models.Model):
     cashier = models.CharField(max_length=255, null=True)
 
     type = models.ForeignKey(
-        EmoneyType, on_delete=models.SET_NULL, null=True, related_name='emoney')
+        EmoneyTypes, on_delete=models.SET_NULL, null=True, related_name='emoney')
     sale = models.ForeignKey(
         Sales, on_delete=models.SET_NULL, null=True, related_name='emoney')
 

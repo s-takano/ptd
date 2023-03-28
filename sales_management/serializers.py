@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Emoney, EmoneyType, FreeeDeals, Hp, Omron, Payments, RetailItems, Sales, SalesDetails, Seller, SalonItems
+from .models import Emoney, EmoneyTypes, FreeeDeals, HPs, OmronTransactions, Payments, RetailItems, Sales, SalesDetails, Sellers, SalonItems
 
 class EMoneySerializer(serializers.ModelSerializer):
     class Meta:
@@ -8,7 +8,7 @@ class EMoneySerializer(serializers.ModelSerializer):
 
 class EmoneyTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = EmoneyType
+        model = EmoneyTypes
         fields = ('id', 'partner', 'item', 'type_name')
 
 class FreeeDealsSerializer(serializers.ModelSerializer):
@@ -18,12 +18,12 @@ class FreeeDealsSerializer(serializers.ModelSerializer):
 
 class HPSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Hp
+        model = HPs
         fields = ('id', 'sales_id', 'sales_date', 'net_sales', 'points')
 
 class OMRONSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Omron
+        model = OmronTransactions
         fields = ('id', 'handling_date', 'credit_company_code', 'credit_company_name', 'payment_category', 'payment_name', 'installment_count_gift_value', 'gift_ticket_quantity', 'slip_number', 'sales_amount', 'scheduled_payment_date1', 'scheduled_payment_date2')
 
 class PaymentsSerializer(serializers.ModelSerializer):
@@ -48,7 +48,7 @@ class SalesDetailsSerializer(serializers.ModelSerializer):
 
 class SellerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Seller
+        model = Sellers
         fields = ('id', 'seller_name')
 
 class SalonItemsSerializer(serializers.ModelSerializer):

@@ -5,7 +5,7 @@ import os
 import pytest
 from django.test import TestCase
 from django.utils import timezone
-from sales_management.models import Sales, SalesDetails, Seller, SalonItems, Emoney, EmoneyType, FreeeDeals, Hp, Omron, Payments, RetailItems
+from sales_management.models import Sales, SalesDetails, Sellers, SalonItems, Emoney, EmoneyTypes, FreeeDeals, HPs, OmronTransactions, Payments, RetailItems
 from django.utils.dateparse import parse_datetime
 
 
@@ -19,7 +19,7 @@ class TestModels(TestCase):
             with open(os.path.join(current_path, "..\\data\\seller.json")) as f_seller:
                 self.test_data_seller = json.load(f_seller)
                 for seller in self.test_data_seller:
-                    s = Seller.objects.create(seller_name=seller["SallerName"])
+                    s = Sellers.objects.create(seller_name=seller["SallerName"])
                     seller_map[seller["ID"]] = s.id
         except Exception as e:
             raise Exception(f"import error:{'seller'}\n{e}")
@@ -28,7 +28,7 @@ class TestModels(TestCase):
             with open(os.path.join(current_path, "..\\data\\omron.json"), encoding="UTF-8") as f_omron:
                 self.test_data_omron = json.load(f_omron)
                 for omron in self.test_data_omron:
-                    Omron.objects.create(
+                    OmronTransactions.objects.create(
                         handling_date=self.parse_datetime(omron["お取扱日"]),
                         credit_company_code=omron["クレジット会社コード"],
                         credit_company_name=omron["クレジット会社名"],
@@ -124,7 +124,7 @@ class TestModels(TestCase):
                         vat_rate=retail_item["VATRate"] if retail_item["VATRate"] != "" else None,
                         product_category=retail_item["商品区分"],
                         supplier_name=retail_item["仕入先名"],
-                        seller=Seller.objects.get(
+                        seller=Sellers.objects.get(
                             id=seller_map[retail_item["Seller"]]),
                         active=retail_item["Active"],
                         registration_date=self.parse_datetime(
@@ -197,7 +197,7 @@ class TestModels(TestCase):
             with open(os.path.join(current_path, "..\\data\\emtype.json"), encoding="UTF-8") as f_emoney_type:
                 self.test_data_emoney_type = json.load(f_emoney_type)
                 for emoney_type in self.test_data_emoney_type:
-                    t = EmoneyType.objects.create(
+                    t = EmoneyTypes.objects.create(
                         partner=emoney_type["取引先"],
                         item=emoney_type["品目"],
                         type_name=emoney_type["TypeName"]
@@ -211,7 +211,7 @@ class TestModels(TestCase):
                 self.test_data_emoney = json.load(f_emoney)
                 for emoney in self.test_data_emoney:
                     Emoney.objects.create(
-                        type=EmoneyType.objects.get(
+                        type=EmoneyTypes.objects.get(
                             id=emoney_type_map[emoney["TypeId"]]) if emoney["TypeId"] != "" else None,
                         sale=Sales.objects.get(
                             id=sales_map[emoney["SalesId"]]) if emoney["SalesId"] != "" else None,
@@ -227,7 +227,7 @@ class TestModels(TestCase):
             with open(os.path.join(current_path, "..\\data\\hp.json"), encoding="UTF-8") as f_hp:
                 self.test_data_hp = json.load(f_hp)
                 for hp in self.test_data_hp:
-                    Hp.objects.create(
+                    HPs.objects.create(
                         sale=Sales.objects.get(
                             id=sales_map[hp["SalesId"]]) if hp["SalesId"] != "" else None,
                         sales_date=self.parse_datetime(hp["SalesDate"]),
@@ -276,7 +276,7 @@ class TestModels(TestCase):
         return timezone.make_aware(datetime.strptime(date_string, "%Y/%m/%d %H:%M:%S" if len(date_string) > 10 else "%Y/%m/%d"))
 
     def setUp(self):
-        self.seller = Seller.objects.create(
+        self.seller = Sellers.objects.create(
             seller_name="Seller Name"
         )
         self.load_test_data()
@@ -425,7 +425,7 @@ class TestModels(TestCase):
         assert hp.points == 100.00
 
     def test_omron(self):
-        omron = Omron.objects.get(slip_number="194")
+        omron = OmronTransactions.objects.get(slip_number="194")
         self.assertIsNotNone(omron.id)
         assert omron.handling_date == timezone.make_aware(
             datetime(2022, 7, 6))
