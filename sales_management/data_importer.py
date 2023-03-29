@@ -128,13 +128,18 @@ class DataImporter():
                                     for file_name in os.listdir(path)]
                                    if ext == ".json"]
 
+        target_names = {config["target_name"] for config in IMPORT_CONFIGS}
+
+        # if there is a file name that is not in `IMPORT_CONFIGS`, raise an error
+        diff = set(capital_data_file_names).difference({name.upper() for name in target_names})
+        if len(diff) != 0:
+            raise Exception(f"invalid data file names:{diff}")
+
         data_file_paths = []
         # load data files in the order of `import_configs`
-        for config in IMPORT_CONFIGS:
-            if config["target_name"].upper() in capital_data_file_names:
-                data_file_path = os.path.join(
-                    path, config["target_name"] + ".json")
-                data_file_paths.append((config["target_name"], data_file_path))
+        for target_name in target_names:
+            data_file_path = os.path.join(path, target_name + ".json")
+            data_file_paths.append((target_name, data_file_path))
 
         return data_file_paths
 
