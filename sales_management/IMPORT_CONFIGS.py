@@ -1,4 +1,10 @@
-IMPORT_CONFIGS = [
+from typing import Dict, List, Tuple, TypedDict, Union
+
+class DataImporterConfig(TypedDict):
+    target_name: str
+    field_map: Dict[str, Union[str, Tuple[str, str]]]
+
+IMPORT_CONFIGS: List[DataImporterConfig] = [
     {
         "target_name": "Sellers",
         "field_map": {

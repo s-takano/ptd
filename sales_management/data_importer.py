@@ -1,6 +1,7 @@
 from decimal import Decimal
 import json
 import logging
+from typing import Any, Callable, Dict, List, Tuple, Type, Union, cast
 from sales_management import models
 from django.db import models as django_models
 import os
@@ -16,7 +17,7 @@ class DataImporter():
     A class to import data from JSON files into the sales management system.
     """
 
-    def import_data_files(self, directory_path):
+    def import_data_files(self, directory_path: str) -> None:
         """
         Import data from JSON files into the sales management system.
 
@@ -25,31 +26,32 @@ class DataImporter():
         data = self._read_files(directory_path)
         self.import_data(data)
 
-    def import_data(self, data):
+    def import_data(self, data: Dict[str, Any]) -> None:
         """
         Import data into the sales management system using the provided data dictionary.
 
         :param data: A dictionary containing the data to import.
         """
-        identity_map = {}
+        global_id_map: Dict[str, Dict[str, int]] = {}
 
         try:
             for config in IMPORT_CONFIGS:
-                target_name = config["target_name"]
-                pk_map = {}
+                target_name: str = config["target_name"]
+                local_id_map: Dict[str, int] = {}
                 if target_name in data:
-                    src_pk = self._find_data_record_pk(config)
+                    field_map = config["field_map"]
+                    src_pk = self._find_data_record_pk(field_map)
                     model = getattr(models, target_name)
-                    pk_map = self._import_records(
-                        data[target_name], config, src_pk, identity_map, model)
+                    local_id_map = self._import_records(
+                        data[target_name], field_map, src_pk, global_id_map, model)
 
-                identity_map[target_name] = pk_map
+                global_id_map[target_name] = local_id_map
 
         except Exception as e:
             logger.error(e)
             raise Exception(f"import error:{e}")
 
-    def _read_files(self, directory_path):
+    def _read_files(self, directory_path: str) -> Dict[str, Any]:
         """
         Read the content of the JSON files in the specified directory.
 
@@ -61,7 +63,7 @@ class DataImporter():
             data[target_name] = self._read_file(data_file_path)
         return data
 
-    def _read_file(self, file_path):
+    def _read_file(self, file_path: str) -> Any:
         """
         Read the content of the specified JSON file.
 
@@ -80,7 +82,7 @@ class DataImporter():
             logger.error(json_error)
             raise Exception(f"json decode error:{json_error}")
 
-    def preprocess(self, content):
+    def preprocess(self, content: str) -> str:
         """
         Preprocess the content of the JSON file.
 
@@ -91,7 +93,7 @@ class DataImporter():
         content = content.replace('\\', '\\\\')
         return content
 
-    def _search_data_files(self, path):
+    def _search_data_files(self, path: str) -> List[Tuple[str, str]]:
         """
         Search for JSON data files in the specified path and return their file paths.
 
@@ -115,31 +117,31 @@ class DataImporter():
 
         return data_file_paths
 
-    def _import_records(self, records, config, data_record_pk, identity_map, model):
+    def _import_records(self, records: List[Dict[str, str]], field_map: Dict[str, Union[str, Tuple[str, str]]], record_pk: str, global_id_map: Dict[str, Dict[str, int]], model) -> Dict[str, int]:
         """
         Import records into the specified model using the provided configuration.
 
         :param records: A list of data records to import.
         :param config: A dictionary containing the import configuration.
         :param data_record_pk: The primary key of the data record.
-        :param identity_map: A dictionary containing an identity map of the imported data.
+        :param global_id_map: A dictionary containing an identity map of the imported data.
         :param model: The Django model to import the data into.
         :return: A dictionary mapping source primary keys to destination primary keys.
         """
-        pk_map = {}
+        local_id_map = {}
 
-        for data_record in records:
-            params = {model_field_name: self._get_model_value(data_record, data_field_name, model, model_field_name, identity_map)
-                      for model_field_name, data_field_name in config["field_map"].items()
+        for record in records:
+            params = {model_field_name: self._get_model_value(record, data_field_name, model, model_field_name, global_id_map)
+                      for model_field_name, data_field_name in field_map.items()
                       if model_field_name != "pk"}
 
             s = model.objects.create(**params)
-            if data_record_pk != "":
-                pk_map[data_record[data_record_pk]] = s.pk
+            if record_pk != "":
+                local_id_map[record[record_pk]] = s.pk
 
-        return pk_map
+        return local_id_map
 
-    def _get_model_value(self, data_record, data_field_name, model, model_field_name, identity_map):
+    def _get_model_value(self, record: Dict[str, str], record_field_name: Union[str, Tuple[str, str]], model, model_field_name: str, global_id_map: Dict[str, Dict[str, int]]) -> Any:
         """
         Get the value for a model field from a data record.
 
@@ -147,26 +149,26 @@ class DataImporter():
         :param data_field_name: The name of the field in the data record.
         :param model: The Django model to import the data into.
         :param model_field_name: The name of the field in the model.
-        :param identity_map: A dictionary containing an identity map of the imported data.
+        :param globa_id_map: A dictionary containing an identity map of the imported data.
         :return: The value to be stored in the model field.
         """
-        data_value = self._data_field_value(
-            data_record, data_field_name, identity_map)
+        data_value = self._record_field_value(
+            record, record_field_name, global_id_map)
         model_field = self._model_field(model, model_field_name)
         return self._convert_value(data_value, model_field)
 
-    def _find_data_record_pk(self, config):
+    def _find_data_record_pk(self, field_map: Dict[str, Union[str, Tuple[str, str]]]) -> str:
         """
         Find the primary key field in the data record based on the provided configuration.
 
         :param config: A dictionary containing the import configuration.
         :return: The primary key field name in the data record, or an empty string if not found.
         """
-        return next((src_field
-                     for dst_field, src_field in config["field_map"].items()
-                     if dst_field == "pk"), "")
+        return cast(str, next((src_field
+                               for dst_field, src_field in field_map.items()
+                               if dst_field == "pk"), ""))
 
-    def _model_field(self, model, model_field_name):
+    def _model_field(self, model, model_field_name: str) -> django_models.Field:
         """
         Get the model field object for the specified model and field name.
 
@@ -178,33 +180,33 @@ class DataImporter():
         field = attr.field
         return field
 
-    def _data_field_value(self, data_record, data_field_name, identity_map):
+    def _record_field_value(self, record: Dict[str, str], field_name: Union[str, Tuple[str, str]], global_id_map: Dict[str, Dict[str, int]]) -> Any:
         """
         Get the value for a field from a data record.
 
         :param data_record: A dictionary representing a data record.
         :param data_field_name: The name of the field in the data record.
-        :param identity_map: A dictionary containing an identity map of the imported data.
+        :param global_id_map: A dictionary containing an identity map of the imported data.
         :return: The value of the specified field in the data record.
         """
-        if isinstance(data_field_name, tuple):
+        if isinstance(field_name, tuple):
             # if src_field is foreign key, return object if exists
-            if data_field_name[0].startswith("[") and data_field_name[0].endswith("]"):
-                model_name = data_field_name[0][1:-1]
-                id_field_name = data_field_name[1]
+            if field_name[0].startswith("[") and field_name[0].endswith("]"):
+                model_name = field_name[0][1:-1]
+                id_field_name = field_name[1]
 
-                if data_record[id_field_name] not in identity_map[model_name]:
+                if record[id_field_name] not in global_id_map[model_name]:
                     return None
 
-                id = identity_map[model_name][data_record[id_field_name]]
+                id = global_id_map[model_name][record[id_field_name]]
                 model = getattr(models, model_name)
                 return model.objects.get(id=id)
 
             # if src_field is tuple and return tuple of values
-            return tuple([data_record[f] for f in data_field_name])
-        return data_record[data_field_name]
+            return tuple([record[f] for f in field_name])
+        return record[field_name]
 
-    def _convert_value(self, data_value, model_field):
+    def _convert_value(self, record_value: str, model_field: django_models.Field) -> Any:
         """
         Convert a data value to the appropriate type for the specified model field.
 
@@ -212,7 +214,7 @@ class DataImporter():
         :param model_field: The Django model field object.
         :return: The converted value suitable for the specified model field.
         """
-        value_converters = {
+        value_converters: Dict[Type[django_models.Field], Callable[[str], Any]] = {
             django_models.CharField: lambda x: x if x != "" else "",
             django_models.IntegerField: lambda x: int(x) if x != "" else 0,
             django_models.DecimalField: lambda x: Decimal(x) if x != "" else Decimal(0),
@@ -222,4 +224,4 @@ class DataImporter():
             django_models.ForeignKey: lambda x: x,
             django_models.BigIntegerField: lambda x: int(x) if x != "" else 0,
         }
-        return value_converters[type(model_field)](data_value)
+        return value_converters[type(model_field)](record_value)
