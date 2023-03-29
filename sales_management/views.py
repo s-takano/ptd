@@ -1,6 +1,6 @@
 from rest_framework import generics
 from .models import Emoney, EmoneyTypes, FreeeDeals, HPs, OmronTransactions, Payments, RetailItems, Sales, SalesDetails, Sellers, SalonItems
-from .serializers import EMoneySerializer, EmoneyTypeSerializer, FreeeDealsSerializer, HPSerializer, OMRONSerializer, PaymentsSerializer, RetailItemsSerializer, SalesSerializer, SalesDetailsSerializer, SellerSerializer, SalonItemsSerializer
+from .serializers import EMoneySerializer, EmoneyTypeSerializer, FreeeDealsSerializer, HPsSerializer, OmronTransactionsSerializer, PaymentsSerializer, RetailItemsSerializer, SalesSerializer, SalesDetailsSerializer, SellersSerializer, SalonItemsSerializer
 
 class EMoneyListCreateView(generics.ListCreateAPIView):
     queryset = Emoney.objects.all()
@@ -16,11 +16,11 @@ class FreeeDealsListCreateView(generics.ListCreateAPIView):
 
 class HPListCreateView(generics.ListCreateAPIView):
     queryset = HPs.objects.all()
-    serializer_class = HPSerializer
+    serializer_class = HPsSerializer
 
 class OMRONListCreateView(generics.ListCreateAPIView):
     queryset = OmronTransactions.objects.all()
-    serializer_class = OMRONSerializer
+    serializer_class = OmronTransactionsSerializer
 
 class PaymentsListCreateView(generics.ListCreateAPIView):
     queryset = Payments.objects.all()
@@ -40,7 +40,7 @@ class SalesDetailsListCreateView(generics.ListCreateAPIView):
 
 class SellerListCreateView(generics.ListCreateAPIView):
     queryset = Sellers.objects.all()
-    serializer_class = SellerSerializer
+    serializer_class = SellersSerializer
 
 class SalonItemsListCreateView(generics.ListCreateAPIView):
     queryset = SalonItems.objects.all()

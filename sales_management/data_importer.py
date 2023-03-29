@@ -3,7 +3,7 @@ import json
 import logging
 from typing import Any, Callable, Dict, List, Tuple, Type, Union, cast
 from sales_management import models
-from django.db import models as django_models
+from django.db import models as django_models, transaction
 import os
 from sales_management.IMPORT_CONFIGS import IMPORT_CONFIGS
 from sales_management.utils import parse_datetime
@@ -21,16 +21,33 @@ class DataImporter():
         """
         Import data from JSON files into the sales management system.
 
-        :param directory_path: The directory path to search for JSON files.
+        The directory path must meet the following requirements:
+        1. The directory must contain a JSON file for each model to import.
+        2. The name of each JSON file must match the name of the model to import.
+
+        The import process follows the steps of the import_data method
+
+        Args:
+            directory_path (str): The directory path to search for JSON files.
         """
         data = self._read_files(directory_path)
         self.import_data(data)
 
+    @transaction.atomic
     def import_data(self, data: Dict[str, Any]) -> None:
         """
         Import data into the sales management system using the provided data dictionary.
 
-        :param data: A dictionary containing the data to import.
+        The data dictionary must meet the following requirements:
+        1. Contain a key for each model to import.
+        2. The value of each key should be a list of dictionaries containing the data to import for that model.
+
+        The import process follows these steps:
+        1. The import is performed in the order of the configurations in the IMPORT_CONFIGS list.
+        2. The import is performed in a transaction. If an error occurs during the import, the database will be rolled back to its original state.
+
+        Args:
+            data (Dict[str, Any]): A dictionary containing the data to import.
         """
         global_id_map: Dict[str, Dict[str, int]] = {}
 
@@ -55,8 +72,9 @@ class DataImporter():
         """
         Read the content of the JSON files in the specified directory.
 
-        :param directory_path: The directory path to search for JSON files.
-        :return: A dictionary containing the content of the JSON files.
+        Args:
+            directory_path (str): The directory path to search for JSON files.
+            return (Dict[str, Any]): A dictionary containing the content of the JSON files.
         """
         data = {}
         for target_name, data_file_path in self._search_data_files(directory_path):
@@ -67,8 +85,9 @@ class DataImporter():
         """
         Read the content of the specified JSON file.
 
-        :param file_path: The path of the JSON file to read.
-        :return: The content of the JSON file.
+        Args:
+            file_path(str): The path of the JSON file to read.
+            return (Any): The content of the JSON file.
         """
         try:
             with open(file_path, encoding="UTF-8") as f:
@@ -86,8 +105,9 @@ class DataImporter():
         """
         Preprocess the content of the JSON file.
 
-        :param content: The content of the JSON file.
-        :return: The preprocessed content.
+        Args:
+            content (str): The content of the JSON file.
+            return (str): The preprocessed content.
         """
         # escape backslash
         content = content.replace('\\', '\\\\')
@@ -97,8 +117,9 @@ class DataImporter():
         """
         Search for JSON data files in the specified path and return their file paths.
 
-        :param path: The directory path to search for JSON files.
-        :return: A list of tuples containing the target name and file path of each JSON file found.
+        Args:
+            path (str): The directory path to search for JSON files.
+            return (List[Tuple[str, str]]): A list of tuples containing the target name and file path of each JSON file found.
         """
         # enum all file names in `path`
         capital_data_file_names = [name.upper()
@@ -121,12 +142,13 @@ class DataImporter():
         """
         Import records into the specified model using the provided configuration.
 
-        :param records: A list of data records to import.
-        :param config: A dictionary containing the import configuration.
-        :param data_record_pk: The primary key of the data record.
-        :param global_id_map: A dictionary containing an identity map of the imported data.
-        :param model: The Django model to import the data into.
-        :return: A dictionary mapping source primary keys to destination primary keys.
+        Args:
+            records (List[Dict[str, str]]): A list of dictionaries containing the data to import for the model.
+            field_map (Dict[str, Union[str, Tuple[str, str]]]): A dictionary containing the mapping between the model fields and the data fields.
+            record_pk (str): The name of the primary key field in the data record.
+            global_id_map (Dict[str, Dict[str, int]]): A dictionary containing the mapping between the primary key values in the data records and the primary key values in the database.
+            model: The model to import the data into.
+            return (Dict[str, int]): A dictionary containing the mapping between the primary key values in the data records and the primary key values in the database.
         """
         local_id_map = {}
 
@@ -145,12 +167,13 @@ class DataImporter():
         """
         Get the value for a model field from a data record.
 
-        :param data_record: A dictionary representing a data record.
-        :param data_field_name: The name of the field in the data record.
-        :param model: The Django model to import the data into.
-        :param model_field_name: The name of the field in the model.
-        :param globa_id_map: A dictionary containing an identity map of the imported data.
-        :return: The value to be stored in the model field.
+        Args:
+            record (Dict[str, str]): A dictionary containing the data to import for the model.
+            record_field_name (Union[str, Tuple[str, str]]): The name of the field in the data record.
+            model: The model to import the data into.
+            model_field_name (str): The name of the field in the model.
+            global_id_map (Dict[str, Dict[str, int]]): A dictionary containing the mapping between the primary key values in the data records and the primary key values in the database.
+            return (Any): The value for the model field.
         """
         data_value = self._record_field_value(
             record, record_field_name, global_id_map)
@@ -161,8 +184,9 @@ class DataImporter():
         """
         Find the primary key field in the data record based on the provided configuration.
 
-        :param config: A dictionary containing the import configuration.
-        :return: The primary key field name in the data record, or an empty string if not found.
+        Args:
+            field_map (Dict[str, Union[str, Tuple[str, str]]]): A dictionary containing the mapping between the model fields and the data fields.
+            return (str): The name of the primary key field in the data record.
         """
         return cast(str, next((src_field
                                for dst_field, src_field in field_map.items()
@@ -172,9 +196,9 @@ class DataImporter():
         """
         Get the model field object for the specified model and field name.
 
-        :param model: The Django model to import the data into.
-        :param model_field_name: The name of the field in the model.
-        :return: The Django model field object.
+        Args:
+            model: The model to import the data into.
+            model_field_name (str): The name of the field in the model.
         """
         attr = getattr(model, model_field_name)
         field = attr.field
@@ -184,10 +208,11 @@ class DataImporter():
         """
         Get the value for a field from a data record.
 
-        :param data_record: A dictionary representing a data record.
-        :param data_field_name: The name of the field in the data record.
-        :param global_id_map: A dictionary containing an identity map of the imported data.
-        :return: The value of the specified field in the data record.
+        Args:
+            record (Dict[str, str]): A dictionary containing the data to import for the model.
+            field_name (Union[str, Tuple[str, str]]): The name of the field in the data record.
+            global_id_map (Dict[str, Dict[str, int]]): A dictionary containing the mapping between the primary key values in the data records and the primary key values in the database.
+            return (Any): The value for the field.
         """
         if isinstance(field_name, tuple):
             # if src_field is foreign key, return object if exists
@@ -210,9 +235,10 @@ class DataImporter():
         """
         Convert a data value to the appropriate type for the specified model field.
 
-        :param data_value: The value to be converted.
-        :param model_field: The Django model field object.
-        :return: The converted value suitable for the specified model field.
+        Args:
+            record_value (str): The value from the data record.
+            model_field (django_models.Field): The model field to convert the value to.
+            return (Any): The converted value.
         """
         value_converters: Dict[Type[django_models.Field], Callable[[str], Any]] = {
             django_models.CharField: lambda x: x if x != "" else "",

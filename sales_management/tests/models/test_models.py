@@ -9,14 +9,6 @@ from sales_management.models import Sales, Sellers, FreeeDeals, OmronTransaction
 
 
 class TestModels(TestCase):
-    def load_data_file(self, file_name):
-        current_path = os.path.dirname(os.path.abspath(__file__))
-        path = os.path.join(current_path, f"..\\data", file_name)
-        with open(path, encoding="UTF-8") as f_retail_items:
-            content = f_retail_items.read()
-            content = content.replace('\\', '\\\\')
-        return content
-
     def load_test_data(self):
         current_path = os.path.dirname(os.path.abspath(__file__))
         path = os.path.join(current_path, f"..\\data")
@@ -161,10 +153,10 @@ class TestModels(TestCase):
 
     def test_hp(self):
         sale = Sales.objects.get(code="S202207040012")
-        hp = sale.hp.first()
-        assert hp.sales_date == timezone.make_aware(datetime(2022, 7, 4))
-        assert hp.net_sales == 9800
-        assert hp.points == 100.00
+        hps = sale.hps.first()
+        assert hps.sales_date == timezone.make_aware(datetime(2022, 7, 4))
+        assert hps.net_sales == 9800
+        assert hps.points == 100.00
 
     def test_omron(self):
         omron = OmronTransactions.objects.get(slip_number="194")

@@ -1,5 +1,5 @@
-from typing import Optional
 from django.db import models
+from typing import Optional
 
 
 class FreeeDeals(models.Model):
@@ -162,7 +162,7 @@ class RetailItems(models.Model):
     update_date = models.DateTimeField(null=True)
 
     seller = models.ForeignKey(
-        Sellers, on_delete=models.SET_NULL, null=True)
+        Sellers, on_delete=models.SET_NULL, null=True, related_name='retail_items')
 
     class Meta:
         db_table = 'retail_items'
@@ -274,7 +274,7 @@ class HPs(models.Model):
     points = models.DecimalField(max_digits=19, decimal_places=2, null=True)
 
     sale = models.ForeignKey(
-        Sales, on_delete=models.SET_NULL, null=True, related_name='hp')
+        Sales, on_delete=models.SET_NULL, null=True, related_name='hps')
 
     class Meta:
         db_table = 'hps'
