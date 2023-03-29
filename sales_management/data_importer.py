@@ -135,12 +135,9 @@ class DataImporter():
         if len(diff) != 0:
             raise Exception(f"invalid data file names:{diff}")
 
-        data_file_paths = []
-        # load data files in the order of `import_configs`
-        for target_name in target_names:
-            data_file_path = os.path.join(path, target_name + ".json")
-            data_file_paths.append((target_name, data_file_path))
-
+        # build file paths in the order of `import_configs`
+        data_file_paths = [(target_name, os.path.join(path, target_name + ".json")) for target_name in target_names]
+        
         return data_file_paths
 
     def _import_records(self, records: List[Dict[str, str]], field_map: Dict[str, Union[str, Tuple[str, str]]], record_pk: str, global_id_map: Dict[str, Dict[str, int]], model) -> Dict[str, int]:
