@@ -32,10 +32,9 @@ class OmronTransactionsSerializer(serializers.ModelSerializer):
 
 class PaymentsSerializer(serializers.ModelSerializer):
     sale = serializers.PrimaryKeyRelatedField(read_only=False, queryset=Sales.objects.all())
-    payment = serializers.PrimaryKeyRelatedField(read_only=False, queryset=Sales.objects.all())
     class Meta:
         model = Payments
-        fields = ('payment', 'sale', 'date', 'time', 'total_collected', 'fees', 'net_total', 'customer_name', 'card_brand', 'pan_suffix', 'deposit_date', 'fee_percentage_rate', 'field1')
+        fields = ('payment_id', 'sale', 'time', 'total_collected', 'fees', 'net_total', 'customer_name', 'card_brand', 'pan_suffix', 'deposit_date', 'fee_percentage_rate', 'field1')
 
 class SellersSerializer(serializers.ModelSerializer):
     class Meta:

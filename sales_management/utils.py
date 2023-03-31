@@ -1,3 +1,4 @@
+import sqlite3
 from django.utils import timezone
 
 
@@ -20,3 +21,14 @@ def parse_datetime(date_string1, date_string2=None):
                 date_string1, "%Y/%m/%d %H:%M:%S" if len(date_string1) > 10 else "%Y/%m/%d")
 
     return timezone.make_aware(ret)
+
+
+def execute_script_file(sql_file_path, conn):
+    cursor = conn.cursor()
+
+    # Read the SQL file
+    with open(sql_file_path, 'r') as f:
+        sql_script = f.read()
+
+    # Execute the SQL commands
+    cursor.executescript(sql_script)

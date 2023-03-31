@@ -1,4 +1,3 @@
-import json
 from django.core.management.base import BaseCommand
 from sales_management.data_importer import DataImporter
 

@@ -68,6 +68,15 @@ class DataImporter():
             logger.error(e)
             raise Exception(f"import error:{e}")
 
+    def clean_up(self):
+        """
+        Clean up the database after importing data. This method deletes all records from the models specified in the IMPORT_CONFIGS list.
+        """
+        for config in IMPORT_CONFIGS:
+            target_name: str = config["target_name"]
+            model = getattr(models, target_name)
+            model.objects.all().delete()
+
     def _read_files(self, directory_path: str) -> Dict[str, Any]:
         """
         Read the content of the JSON files in the specified directory.
@@ -99,7 +108,9 @@ class DataImporter():
             raise Exception(f"file not found:{file_path}")
         except json.JSONDecodeError as json_error:
             logger.error(json_error)
-            raise Exception(f"json decode error:{json_error}")
+            raise Exception((f"json decode error:{file_path}\n"
+                             f"msg:{json_error.msg}\n"
+                             f"lineno:{json_error.lineno} colno:{json_error.colno}"))
 
     def preprocess(self, content: str) -> str:
         """
