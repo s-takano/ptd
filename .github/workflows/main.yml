@@ -60,7 +60,7 @@ jobs:
           creds: ${{ secrets.AZURE_SERVICE_PRINCIPAL }}
 
       - name: Disable static collection and set migration command on App Service
-        uses: Azure/appservice-settings@v2
+        uses: Azure/appservice-settings@v1
         with:  
           app-name: 'pt-d'
           app-settings-json: '[{ "name": "DISABLE_COLLECTSTATIC", "value": "true" }, { "name": "SCM_DO_BUILD_DURING_DEPLOYMENT", "value": "true" }]'
