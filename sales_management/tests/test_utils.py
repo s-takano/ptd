@@ -46,8 +46,8 @@ def load_test_data():
     conn.cursor().execute("DELETE FROM omron_transactions")
     conn.cursor().execute("DELETE FROM payments")
     conn.cursor().execute("DELETE FROM hps")
-    conn.cursor().execute("DELETE FROM e_money")
-    conn.cursor().execute("DELETE FROM em_type")
+    conn.cursor().execute("DELETE FROM emoney")
+    conn.cursor().execute("DELETE FROM emoney_types")
     conn.cursor().execute("DELETE FROM salon_items")
     conn.cursor().execute("DELETE FROM retail_items")
 

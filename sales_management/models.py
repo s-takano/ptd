@@ -291,7 +291,7 @@ class EmoneyTypes(models.Model):
     type_name = models.CharField(max_length=255, null=True)
 
     class Meta:
-        db_table = 'em_type'
+        db_table = 'emoney_types'
 
 
 class Emoney(models.Model):
@@ -312,7 +312,7 @@ class Emoney(models.Model):
         Sales, on_delete=models.SET_NULL, null=True, related_name='emoney')
 
     class Meta:
-        db_table = 'e_money'
+        db_table = 'emoney'
 
 
 class Payments(models.Model):
