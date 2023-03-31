@@ -11,3 +11,4 @@ coreapi
 pytz
 mypy >= 1.1.1
 djangorestframework-stubs[compatible-mypy]
+drf-yasg

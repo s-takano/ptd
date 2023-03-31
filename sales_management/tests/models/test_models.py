@@ -44,7 +44,7 @@ def test_sales(import_test_data):
     assert sales.comment == "Comment"
 
 @pytest.mark.django_db
-def test_sales_details(import_test_data):
+def test_sales_items(import_test_data):
     sales = Sales.objects.get(code="S202207080013")
     sales_detail_retail = sales.details.filter(
         item_type="商品").first()

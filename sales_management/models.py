@@ -224,7 +224,7 @@ class Sales(models.Model):
         db_table = 'sales'
 
 
-class SalesDetails(models.Model):
+class SalesItems(models.Model):
     # ID:Long(4) False
     id = models.BigAutoField(primary_key=True)
     # Customer:Text(255) False
@@ -260,7 +260,7 @@ class SalesDetails(models.Model):
         RetailItems, on_delete=models.SET_NULL, null=True, related_name='salon_details')
 
     class Meta:
-        db_table = 'sales_details'
+        db_table = 'sales_items'
 
 
 class HPs(models.Model):

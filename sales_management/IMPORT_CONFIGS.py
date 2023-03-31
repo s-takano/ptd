@@ -90,7 +90,7 @@ IMPORT_CONFIGS: List[DataImporterConfig] = [
         }
     },
     {
-        "target_name": "SalesDetails",
+        "target_name": "SalesItems",
         "field_map": {
             "pk": "ID",
             "sale": ("[Sales]", "SaleId"),

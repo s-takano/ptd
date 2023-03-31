@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Emoney, EmoneyTypes, FreeeDeals, HPs, OmronTransactions, Payments, RetailItems, Sales, SalesDetails, Sellers, SalonItems
+from .models import Emoney, EmoneyTypes, FreeeDeals, HPs, OmronTransactions, Payments, RetailItems, Sales, SalesItems, Sellers, SalonItems
 
 
 class EmoneyTypeSerializer(serializers.ModelSerializer):
@@ -53,18 +53,17 @@ class SalonItemsSerializer(serializers.ModelSerializer):
         model = SalonItems
         fields = ('id', 'category', 'number', 'display_name', 'norm_name', 'price', 'tax_category', 'active', 'registration_date', 'update_date')
 
-class SalesDetailsSerializer(serializers.ModelSerializer):
+class SalesItemsSerializer(serializers.ModelSerializer):
     sale = serializers.PrimaryKeyRelatedField(read_only=False, queryset=Sales.objects.all())
     payment = serializers.PrimaryKeyRelatedField(read_only=False, queryset=Sales.objects.all())
-
-    salon_item = SalonItemsSerializer(read_only=True)
-    retail_item = RetailItemsSerializer(read_only=True)
+    salon_item = SalonItemsSerializer(read_only=False)
+    retail_item = RetailItemsSerializer(read_only=False)
     class Meta:
-        model = SalesDetails
+        model = SalesItems
         fields = ('id', 'sale', 'payment', 'customer', 'item_type', 'salon_item', 'retail_item', 'staff', 'amount', 'gross_sales', 'discount_type', 'discount', 'net_sales', 'field1', 'field2')
 
 class SalesSerializer(serializers.ModelSerializer):
-    details = SalesDetailsSerializer(many=True, read_only=True)
+    details = SalesItemsSerializer(many=True, read_only=True)
     emoney = EMoneySerializer(many=True, read_only=True)
     hps = HPsSerializer(many=True, read_only=True)
     payments = PaymentsSerializer(many=True, read_only=True)

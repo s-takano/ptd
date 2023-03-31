@@ -16,7 +16,7 @@ def load_test_data():
     execute_script_file(
         os.path.join(sql_dir_path, "sales.sql"), conn)
     execute_script_file(
-        os.path.join(sql_dir_path, "sales_details.sql"), conn)
+        os.path.join(sql_dir_path, "sales_items.sql"), conn)
     execute_script_file(
         os.path.join(sql_dir_path, "sellers.sql"), conn)
     execute_script_file(
@@ -40,7 +40,7 @@ def load_test_data():
 
     # clean up
     conn.cursor().execute("DELETE FROM sales")
-    conn.cursor().execute("DELETE FROM sales_details")
+    conn.cursor().execute("DELETE FROM sales_items")
     conn.cursor().execute("DELETE FROM sellers")
     conn.cursor().execute("DELETE FROM freee_deals")
     conn.cursor().execute("DELETE FROM omron_transactions")
