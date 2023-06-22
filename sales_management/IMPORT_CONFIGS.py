@@ -79,7 +79,7 @@ IMPORT_CONFIGS: List[DataImporterConfig] = [
             "norm_name": "NormName",
             "price": "Price",
             "cost": "Cost",
-            "vat_type": "VATType",
+            "vat_category": "VATType",
             "vat_rate": "VATRate",
             "product_category": "商品区分",
             "supplier_name": "仕入先名",

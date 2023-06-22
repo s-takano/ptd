@@ -2,9 +2,10 @@ from decimal import Decimal
 from django.test import TestCase
 from django.utils import timezone
 import pytest
-from sales_management.models import Sales
-from sales_management.serializers import SalesSerializer
+from sales_management.models import Sales, SalesItems
+from sales_management.serializers import SalesCreateUpdateSerializer, SalesRetrieveSerializer
 from sales_management.tests.test_utils import is_valid_datetime, load_test_data
+
 
 @pytest.mark.django_db()
 def test_create(load_test_data):
@@ -31,10 +32,12 @@ def test_create(load_test_data):
         'comment': 'comment',
     }
     count = Sales.objects.count()
-    serializer = SalesSerializer(data=data)
+    serializer = SalesCreateUpdateSerializer(data=data)
+    print(serializer.errors if not serializer.is_valid() else "")
     assert serializer.is_valid()
     serializer.save()
-    assert Sales.objects.count()== 1+count
+    assert Sales.objects.count() == 1+count
+
 
 @pytest.mark.django_db()
 def test_update(load_test_data):
@@ -61,13 +64,13 @@ def test_update(load_test_data):
         'comment': 'comment',
     }
     sales = Sales.objects.get(code="S202207080013")
-    serializer = SalesSerializer(sales, data=data)
+    serializer = SalesCreateUpdateSerializer(sales, data=data)
     assert serializer.is_valid()
     serializer.save()
     sales = Sales.objects.get(code="S202207080013")
-    assert sales.code== "S202207080013"
-    assert sales.customer== "customer"
-    assert sales.from_time== data['from_time']
+    assert sales.code == "S202207080013"
+    assert sales.customer == "customer"
+    assert sales.from_time == data['from_time']
     assert sales.to_time == data['to_time']
     assert sales.gross_salon_sales == 1
     assert sales.gross_retail_sales == 1
@@ -86,21 +89,16 @@ def test_update(load_test_data):
     assert sales.tax == 1
     assert sales.comment == "comment"
 
-@pytest.mark.django_db()
-def test_delete(load_test_data):
-    initial_count = Sales.objects.count()
-    sales = Sales.objects.get(code="S202207080013")
-    sales.delete()
-    assert Sales.objects.count()== initial_count-1
 
 @pytest.mark.django_db()
 def test_get(load_test_data):
     sales = Sales.objects.get(code="S202207080013")
     print(sales.from_time)
-    serializer = SalesSerializer(sales)
+    serializer = SalesRetrieveSerializer(sales)
     assert serializer.data['code'] == "S202207080013"
     assert serializer.data['customer'] == "d757a1ab26d9e6975a0c9206d49c5023cbe33e3b"
-    assert is_valid_datetime(serializer.data['from_time'], "2022-07-08T03:17:00")
+    assert is_valid_datetime(
+        serializer.data['from_time'], "2022-07-08T03:17:00")
     assert is_valid_datetime(serializer.data['to_time'], "2022-07-08 03:18:00")
     assert Decimal(serializer.data['gross_salon_sales']) == Decimal("4400")
     assert Decimal(serializer.data['gross_retail_sales']) == Decimal("22000")
@@ -118,12 +116,11 @@ def test_get(load_test_data):
     assert Decimal(serializer.data['credit']) == Decimal("0")
     assert Decimal(serializer.data['tax']) == Decimal("2400")
     assert serializer.data['comment'] == "da39a3ee5e6b4b0d3255bfef95601890afd80709"
-    # check details exist
-    assert len(serializer.data['details']) == 2
+    # check items exist
+    assert len(serializer.data['items']) == 2
     # check emoney exist
     assert len(serializer.data['emoney']) == 1
     # check payments exist
     assert len(serializer.data['payments']) == 1
     # check hps exist
     assert len(serializer.data['hps']) == 0
-

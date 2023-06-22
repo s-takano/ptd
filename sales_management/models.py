@@ -1,5 +1,7 @@
 from django.db import models
 from typing import Optional
+from django.core.exceptions import ValidationError
+from django.db.models import ProtectedError
 
 
 class FreeeDeals(models.Model):
@@ -117,6 +119,11 @@ class SalonItems(models.Model):
     # 更新日付:Date/Time(8) False
     update_date = models.DateTimeField(null=True)
 
+    def delete(self, using=None, keep_parents=False):
+        if (sales_items := self.sales_items) and sales_items.exists():
+            raise ProtectedError(f'This item is used in sales items.{sales_items}', self)
+        super().delete(using, keep_parents)
+
     class Meta:
         db_table = 'salon_items'
 
@@ -147,7 +154,7 @@ class RetailItems(models.Model):
     # Cost:Currency(8) False
     cost = models.DecimalField(max_digits=19, decimal_places=2, null=True)
     # VATType:Text(255) False
-    vat_type = models.CharField(max_length=255, null=True)
+    vat_category = models.CharField(max_length=255, null=True)
     # VATRate:Currency(8) False
     vat_rate = models.DecimalField(max_digits=19, decimal_places=2, null=True)
     # 商品区分:Text(255) False
@@ -164,6 +171,11 @@ class RetailItems(models.Model):
     seller = models.ForeignKey(
         Sellers, on_delete=models.SET_NULL, null=True, related_name='retail_items')
 
+    def delete(self, using=None, keep_parents=False):
+        if (sales_items := self.sales_items) and sales_items.exists():
+            raise ProtectedError(f'This item is used in sales items.{sales_items}', self)
+        super().delete(using, keep_parents)
+        
     class Meta:
         db_table = 'retail_items'
 
@@ -250,14 +262,14 @@ class SalesItems(models.Model):
     field2 = models.CharField(max_length=255, null=True)
 
     sale = models.ForeignKey(
-        Sales, on_delete=models.SET_NULL, null=True, related_name='details')
+        Sales, on_delete=models.CASCADE, null=True, related_name='items')
     payment = models.ForeignKey(
-        Sales, on_delete=models.SET_NULL, null=True, related_name='payment_details')
+        Sales, on_delete=models.SET_NULL, null=True, related_name='payment_items')
 
     salon_item = models.ForeignKey(
-        SalonItems, on_delete=models.SET_NULL, null=True, related_name='salon_details')
+        SalonItems, on_delete=models.SET_NULL, null=True, related_name='sales_items')
     retail_item = models.ForeignKey(
-        RetailItems, on_delete=models.SET_NULL, null=True, related_name='salon_details')
+        RetailItems, on_delete=models.SET_NULL, null=True, related_name='sales_items')
 
     class Meta:
         db_table = 'sales_items'

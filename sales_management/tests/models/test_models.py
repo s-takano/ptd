@@ -4,7 +4,8 @@ import os
 from django.utils import timezone
 import pytest
 from sales_management.data_importer import DataImporter
-from sales_management.models import Sales, Sellers, FreeeDeals, OmronTransactions
+from sales_management.models import Emoney, HPs, Payments, RetailItems, Sales, SalesItems, SalonItems, Sellers, FreeeDeals, OmronTransactions
+from django.db.models import ProtectedError
 
 @pytest.fixture()
 def import_test_data(django_db_blocker, django_db_setup):
@@ -18,7 +19,7 @@ def import_test_data(django_db_blocker, django_db_setup):
 
 
 @pytest.mark.django_db
-def test_sales(import_test_data):
+def test_sales_get(import_test_data: None):
     sales = Sales.objects.get(code="S202207080013")
     assert sales.id is not None
     assert sales.customer == "C202207080013"
@@ -43,10 +44,34 @@ def test_sales(import_test_data):
     assert sales.tax == Decimal("2400")
     assert sales.comment == "Comment"
 
-@pytest.mark.django_db
-def test_sales_items(import_test_data):
+
+@pytest.mark.django_db()
+def test_sales_delete(import_test_data: None):
     sales = Sales.objects.get(code="S202207080013")
-    sales_detail_retail = sales.details.filter(
+    emoney_id = sales.emoney.first().id
+    payment_id = sales.payments.first().id
+    hp_id = sales.hps.first().id
+    total_item_count = SalesItems.objects.count()
+    item_count = sales.items.count()
+
+    sales.delete()
+
+    with pytest.raises(Sales.DoesNotExist):
+        Sales.objects.get(code="S202207080013")
+    # Delete should cascade to SalesItems
+    assert SalesItems.objects.count() == total_item_count - item_count
+    # Delete should set NULL to Emoney
+    assert Emoney.objects.get(id=emoney_id).sale is None
+    # Delete should set NULL to Payments
+    assert Payments.objects.get(id=payment_id).sale is None
+    # Delete should set NULL to Hps
+    assert HPs.objects.get(id=hp_id).sale is None
+    
+
+@pytest.mark.django_db
+def test_sales_items_get(import_test_data: None):
+    sales = Sales.objects.get(code="S202207080013")
+    sales_detail_retail = sales.items.filter(
         item_type="商品").first()
 
     assert sales_detail_retail.sale == sales
@@ -67,7 +92,7 @@ def test_sales_items(import_test_data):
     assert sales_detail_retail.retail_item.norm_name == "NormName_37841"
     assert sales_detail_retail.retail_item.price == Decimal("22000")
     assert sales_detail_retail.retail_item.cost == Decimal("0")
-    assert sales_detail_retail.retail_item.vat_type == "内税"
+    assert sales_detail_retail.retail_item.vat_category == "内税"
     assert sales_detail_retail.retail_item.vat_rate == Decimal("10")
     assert sales_detail_retail.retail_item.product_category == "両用"
     assert sales_detail_retail.retail_item.supplier_name == "仕入先名_37841"
@@ -79,7 +104,7 @@ def test_sales_items(import_test_data):
         == timezone.make_aware(datetime(2018, 12, 12, 12, 33, 43))
 
     # test only difference between retail and salon
-    sales_detail_salon = sales.details.filter(
+    sales_detail_salon = sales.items.filter(
         item_type="技術").first()
     assert sales_detail_salon.item_type == "技術"
     assert sales_detail_salon.salon_item.category == "Category_9031"
@@ -95,22 +120,42 @@ def test_sales_items(import_test_data):
         == timezone.make_aware(datetime(2022, 2, 13, 10, 9, 30))
 
 @pytest.mark.django_db
-def test_payment_details(import_test_data):
+def test_sales_items_delete(import_test_data: None):
+    sales_items = SalesItems.objects.get(id=13)
+    total_salon_item_count = SalonItems.objects.count()
+    total_retail_item_count = RetailItems.objects.count()
+    total_seller_count = Sellers.objects.count()
+
+    sales_items.delete()
+    with pytest.raises(SalesItems.DoesNotExist):
+        SalesItems.objects.get(id=13)
+    
+    # SalonItems should not be deleted when Sales is deleted
+    assert SalonItems.objects.count() == total_salon_item_count
+    # RetailItems should not be deleted when Sales is deleted
+    assert RetailItems.objects.count() == total_retail_item_count
+    # Delete should not cascade to Sellers
+    assert Sellers.objects.count() == total_seller_count
+
+
+
+@pytest.mark.django_db
+def test_payment_items(import_test_data: None):
     payment_sales = Sales.objects.get(code="S202207180006")
     sale_sales = Sales.objects.get(code="S202207180007")
 
-    assert payment_sales.details.first().payment == payment_sales
-    assert sale_sales.details.first().payment == payment_sales
-    assert sale_sales.details.first().sale == sale_sales
+    assert payment_sales.items.first().payment == payment_sales
+    assert sale_sales.items.first().payment == payment_sales
+    assert sale_sales.items.first().sale == sale_sales
 
-    assert payment_sales.details.count() == 2
-    assert sale_sales.details.count() == 2
+    assert payment_sales.items.count() == 2
+    assert sale_sales.items.count() == 2
 
-    assert payment_sales.payment_details.count() == 4
-    assert sale_sales.payment_details.count() == 0
+    assert payment_sales.payment_items.count() == 4
+    assert sale_sales.payment_items.count() == 0
 
 @pytest.mark.django_db
-def test_emoney(import_test_data):
+def test_emoney_get(import_test_data: None):
     sales = Sales.objects.get(code="S202207040012")
     emoney = sales.emoney.first()
     emoney_type = emoney.type
@@ -127,7 +172,7 @@ def test_emoney(import_test_data):
     assert emoney.cashier == "M"
 
 @pytest.mark.django_db
-def test_freee_deals(import_test_data):
+def test_freee_deals_get(import_test_data: None):
     freee_deal = FreeeDeals.objects.get(number=43881)
     assert freee_deal.id is not None
     assert freee_deal.type == "会計"
@@ -157,7 +202,7 @@ def test_freee_deals(import_test_data):
     assert freee_deal.summary == "掛売(2022/07/16)"
 
 @pytest.mark.django_db
-def test_hp(import_test_data):
+def test_hp_get(import_test_data: None):
     sale = Sales.objects.get(code="S202207040012")
     hps = sale.hps.first()
     assert hps.sales_date == timezone.make_aware(datetime(2022, 7, 4))
@@ -165,7 +210,7 @@ def test_hp(import_test_data):
     assert hps.points == 100.00
 
 @pytest.mark.django_db
-def test_omron(import_test_data):
+def test_omron_get(import_test_data: None):
     omron = OmronTransactions.objects.get(slip_number="194")
     assert omron.id is not None
     assert omron.handling_date == timezone.make_aware(
@@ -184,7 +229,7 @@ def test_omron(import_test_data):
         timezone.make_aware(datetime(2022, 7, 21))
 
 @pytest.mark.django_db
-def test_payments(import_test_data):
+def test_payments_get(import_test_data: None):
     sale = Sales.objects.get(code="S202207040012")
     payment = sale.payments.first()
     assert payment.id is not None
@@ -202,3 +247,79 @@ def test_payments(import_test_data):
         timezone.make_aware(datetime(2022, 7, 7))
     assert payment.fee_percentage_rate == Decimal("3.25")
     assert payment.field1 == "フィールド1"
+
+@pytest.mark.django_db
+def test_salon_items_get(import_test_data: None):
+    salon_item = SalonItems.objects.get(id=1)
+    assert salon_item.id is not None
+    assert salon_item.category == "Category_8747"
+    assert salon_item.number == int("6")
+    assert salon_item.display_name == "DisplayName_8747"
+    assert salon_item.norm_name == "NormName_8747"
+    assert salon_item.price == Decimal("0")
+    assert salon_item.tax_category == "内税"
+    assert salon_item.active == bool("True")
+    assert salon_item.registration_date == \
+        timezone.make_aware(datetime(2007, 12, 20, 15, 5, 10))
+    assert salon_item.update_date == \
+        timezone.make_aware(datetime(2012, 6, 25, 15, 3, 58))
+
+@pytest.mark.django_db
+def test_salon_items_delete_used(import_test_data: None):
+    # initial_count = SalonItems.objects.count()
+    salon_item = SalonItems.objects.get(id=1)
+
+    # used salon_item cannot be deleted
+    with pytest.raises(ProtectedError):
+        salon_item.delete()
+
+@pytest.mark.django_db
+def test_salon_items_delete_unused(import_test_data: None):
+    initial_count = SalonItems.objects.count()
+
+    # unused salon_item can be deleted
+    salon_item = SalonItems.objects.get(id=1)
+    salon_item.sales_items.all().delete()
+    salon_item.delete()
+
+    assert SalonItems.objects.count() == initial_count - 1
+
+@pytest.mark.django_db
+def test_retail_items_get(import_test_data: None):
+    retail_item = RetailItems.objects.get(display_name = "DisplayName_37841")
+    assert retail_item.id is not None
+    assert retail_item.category == "Category_37841"
+    assert retail_item.number == int("4")
+    assert retail_item.display_name == "DisplayName_37841"
+    assert retail_item.norm_name == "NormName_37841"
+    assert retail_item.price == Decimal("22000")
+    assert retail_item.cost == Decimal("0")
+    assert retail_item.vat_category == "内税"
+    assert retail_item.vat_rate == Decimal("10")
+    assert retail_item.product_category == "両用"
+    assert retail_item.supplier_name == "仕入先名_37841"
+    assert retail_item.seller.id == 1
+    assert retail_item.active == bool("True")
+    assert retail_item.registration_date == \
+        timezone.make_aware(datetime(2018, 12, 12, 12, 33, 43))
+    assert retail_item.update_date == \
+        timezone.make_aware(datetime(2018, 12, 12, 12, 33, 43))
+
+@pytest.mark.django_db
+def test_retail_items_delete_used(import_test_data: None):
+    retail_item = RetailItems.objects.get(id=1)
+
+    # used retail_item cannot be deleted
+    with pytest.raises(ProtectedError):
+        retail_item.delete()
+
+@pytest.mark.django_db
+def test_retail_items_delete_unused(import_test_data: None):
+    initial_count = RetailItems.objects.count()
+
+    # unused retail_item can be deleted
+    retail_item = RetailItems.objects.get(id=1)
+    retail_item.sales_items.all().delete()
+    retail_item.delete()
+
+    assert RetailItems.objects.count() == initial_count - 1
